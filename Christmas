@@ -33,7 +33,7 @@ table.sort(modelNames)
 
 -- Reordered UI Elements (Dropdown at top)
 local modelDropdown = Tabs.Christmas:AddDropdown("ModelDropdown", {
-    Title = "Select NPC",
+    Title = "Select Boss",
     Values = modelNames,
     Multi = false,
     Default = modelNames[1],
@@ -76,6 +76,100 @@ AutoClickToggle:OnChanged(function()
 end)
 
 modelDropdown:OnChanged(function(Value) end)
+
+
+-- Add section for NPC Farm
+local Section = Tabs.Christmas:AddSection("Auto NPC Farm")
+
+-- Track state
+local isAutoFarming = false
+local isBossFighting = false
+local snowstormPath = workspace.GameObjects.RngNPCs["Frostlands-Snowstorm"].Npc
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- Function to hold E key with pattern
+local function holdEPattern()
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    wait(2) -- Hold for 2 seconds
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    wait(0.5) -- Release for 0.5 seconds
+end
+
+-- Auto Beat NPC Toggle
+local AutoBeatNPCToggle = Tabs.Christmas:AddToggle("AutoBeatNPC", {
+    Title = "Auto Beat NPC",
+    Description = "Auto Fight the NPC's spawned in Snowstorms.",
+    Default = false
+})
+
+-- Auto Fight Boss Toggle
+local AutoFightBossToggle = Tabs.Christmas:AddToggle("AutoFightBoss", {
+    Title = "Auto Fight Boss",
+    Description = "Fight selected boss when no NPCs are present. -- Must have the Auto Beat NPC toggle enabled",
+    Default = false
+})
+
+AutoBeatNPCToggle:OnChanged(function()
+    isAutoFarming = AutoBeatNPCToggle.Value
+    
+    if isAutoFarming then
+        spawn(function()
+            while isAutoFarming do
+                local npcs = snowstormPath:GetChildren()
+                if #npcs > 0 then
+                    for _, npc in ipairs(npcs) do
+                        if not isAutoFarming then break end
+                        
+                        if npc:IsA("Model") and npc:FindFirstChild("Table") and 
+                           npc.Table:FindFirstChild("PlayerRoot") then
+                            -- Teleport to NPC
+                            local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                            if humanoid then
+                                humanoid.CFrame = npc.Table.PlayerRoot.CFrame
+                                
+                                -- Start E key pattern
+                                spawn(function()
+                                    local startTime = tick()
+                                    while isAutoFarming and (tick() - startTime) < 4 do
+                                        holdEPattern()
+                                    end
+                                end)
+                                
+                                wait(4) -- Wait 4 seconds before next teleport
+                            end
+                        end
+                    end
+                elseif isBossFighting then
+                    -- Fight selected boss if no NPCs present
+                    local selectedNPC = modelDropdown.Value
+                    if selectedNPC then
+                        local npcModel = npcFolderPath:FindFirstChild(selectedNPC)
+                        if npcModel and npcModel:FindFirstChild("Table") then
+                            local args = {
+                                [1] = selectedNPC,
+                                [2] = npcModel.Table,
+                                [3] = "Frostlands"
+                            }
+                            game:GetService("ReplicatedStorage").Packages.Knit.Services.ArmWrestleService.RE.onEnterNPCTable:FireServer(unpack(args))
+                            
+                            -- Auto click while fighting boss
+                            for i = 1, 30 do
+                                if not isBossFighting then break end
+                                game:GetService("ReplicatedStorage").Packages.Knit.Services.ArmWrestleService.RE.onClickRequest:FireServer()
+                                wait(0.1)
+                            end
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    end
+end)
+
+AutoFightBossToggle:OnChanged(function()
+    isBossFighting = AutoFightBossToggle.Value
+end)
 
 local Section = Tabs.Christmas:AddSection("Free Gift")
 
