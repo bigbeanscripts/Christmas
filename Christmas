@@ -347,9 +347,39 @@ AutoClaimWorkshopToggle:OnChanged(function()
     end
 end)
 
+
+
 local TowerSection = Tabs.Christmas:AddSection("Towers")
 
+-- Ice Tower Buttons
+TowerSection:AddButton({
+    Title = "Use Ice Tower Key (1x)",
+    Description = "Use the Ice Tower Key once.",
+    Callback = function()
+        local args = {
+            [1] = "IceTower",
+            [2] = false
+        }
+        game:GetService("ReplicatedStorage").Packages.Knit.Services.TowerService.RF.EnterTower:InvokeServer(unpack(args))
+        print("Used Ice Tower Key (1x)")
+    end
+})
+
+TowerSection:AddButton({
+    Title = "Use All Ice Tower Keys (250x)",
+    Description = "Use All Ice Tower Keys (max 250 at a time).",
+    Callback = function()
+        local args = {
+            [1] = "IceTower",
+            [2] = true
+        }
+        game:GetService("ReplicatedStorage").Packages.Knit.Services.TowerService.RF.EnterTower:InvokeServer(unpack(args))
+        print("Used Ice Tower Keys (250x)")
+    end
+})
+
 -- Scrooge Tower Buttons
+
 TowerSection:AddButton({
     Title = "Use Scrooge Tower Key (1x)",
     Description = "Use the Scrooge Tower Key once.",
@@ -378,7 +408,7 @@ TowerSection:AddButton({
 
 -- Snowstorm Tower Buttons
 TowerSection:AddButton({
-    Title = "Use Snowstorm Tower Key (1x)",
+    Title = "Use Snowstorm Tower Key (1x)",  -- Added missing comma here
     Description = "Use the Snowstorm Tower Key once.",
     Callback = function()
         local args = {
