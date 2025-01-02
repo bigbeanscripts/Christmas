@@ -231,6 +231,7 @@ end)
 
 modelDropdown:OnChanged(function(Value) end)
 
+
 local Section = Tabs.Christmas:AddSection("Auto NPC Farm")
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -274,11 +275,17 @@ AutoBeatNPCToggle:OnChanged(function()
             end
         end)
         
-        -- Start key simulation
+        -- Start key simulation - now checks for NPCs
         spawn(function()
             while true do
                 if not AutoBeatNPCToggle.Value then break end
-                simulateKeyPress()
+                
+                -- Only simulate key press if NPCs are present
+                local npcs = snowstormPath:GetChildren()
+                if #npcs > 0 then
+                    simulateKeyPress()
+                end
+                
                 task.wait(0.1)
             end
         end)
@@ -325,10 +332,13 @@ end)
 
 local AutoFightBossToggle = Tabs.Christmas:AddToggle("AutoFightBoss", {
     Title = "Auto Fight Boss",
-    Description = "Fight selected boss when no NPCs are present",
+    Description = "Fight selected boss when no NPCs are present -- Must have Auto Beat NPC enabled.",
     Default = false
 })
 
+AutoFightBossToggle:OnChanged(function()
+    isBossFighting = AutoFightBossToggle.Value
+end)
 AutoFightBossToggle:OnChanged(function()
     isBossFighting = AutoFightBossToggle.Value
 end)
